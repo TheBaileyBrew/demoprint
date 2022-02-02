@@ -161,21 +161,28 @@ namespace demoprint.Viewmodels
 		void PrintItemTag(Connection conn, Tag item)
         {
 			var tagQuantity = item.Quantity;
-			string zpl = NORMAL_TAG_ZPL;
-			zpl = zpl.Replace("{{ItemNmbr}}", $"{item.ItemNumber:g0}");
-			zpl = zpl.Replace("{{ItemDescr}}", item.ItemDescription);
-			zpl = zpl.Replace("{{Upc}}", item.Upc);
-			zpl = zpl.Replace("{{Ru}}", $"{item.RetailUnit:g0}");
-			zpl = zpl.Replace("{{Size}}", item.Size);
-			zpl = zpl.Replace("{{Price}}", item.RetailPrice);
-			zpl = zpl.Replace("{{ItemNmbrAndCheckDigit}}", $"{item.ItemNumberAndCheckDigit}");
-
-			var bytes = Encoding.UTF8.GetBytes(zpl);
-
 			for (int x = 0; x < tagQuantity; x++)
 			{
+				var status = PrinterUtil.GetCurrentStatus(conn, PrinterLanguage.ZPL);
+				var startPause = DateTime.Now;
+				while (status.isReceiveBufferFull && DateTime.Now.Subtract(startPause).TotalSeconds < 30)
+				{
+					App.Current.Hud.Show("ReceiveBufferFull");
+					// haven't see this actually happen yet...just being safe
+					System.Diagnostics.Debug.WriteLine("pausing up to 30s for printer...receive buffer is full ({0} formatsInReceiveBuffer", status.numberOfFormatsInReceiveBuffer);
+					System.Threading.Thread.Sleep(1000);
+				}
 				RollingTotalItems++;
+				string zpl = NORMAL_TAG_ZPL;
+				zpl = zpl.Replace("{{ItemNmbr}}", $"{item.ItemNumber:g0}");
+				zpl = zpl.Replace("{{ItemDescr}}", $"{RollingTotalItems}.{item.ItemDescription}");
+				zpl = zpl.Replace("{{Upc}}", item.Upc);
+				zpl = zpl.Replace("{{Ru}}", $"{item.RetailUnit:g0}");
+				zpl = zpl.Replace("{{Size}}", item.Size);
+				zpl = zpl.Replace("{{Price}}", item.RetailPrice);
+				zpl = zpl.Replace("{{ItemNmbrAndCheckDigit}}", $"{item.ItemNumberAndCheckDigit}");
 				App.Current.Hud.Show($"Printing {RollingTotalItems}/{TotalItems}");
+				var bytes = Encoding.UTF8.GetBytes(zpl);
 				conn.Write(bytes);
 			}
 		}
@@ -267,9 +274,7 @@ namespace demoprint.Viewmodels
 					commands.Add("");
 					var buffer = string.Join("\r\n", commands.ToArray());
 					conn.Write(Encoding.UTF8.GetBytes(buffer));
-
 					conn.Close();
-
 					CurrentPrinterName = SelectedPrinterName;
 					CurrentPrinterAddress = SelectedPrinterAddress;
 
@@ -363,12 +368,33 @@ namespace demoprint.Viewmodels
 					TotalItems = 0;
 					foreach (var it in AvailableItems)
 						TotalItems += it.Quantity;
-
 					foreach(var i in AvailableItems)
-                    {
 						PrintItemTag(conn, i);
-                    }
+
+					while (true)
+					{
+						var status = PrinterUtil.GetCurrentStatus(conn, PrinterLanguage.ZPL);
+						System.Diagnostics.Debug.WriteLine("labelsRemainingInBatch:{0}, isReceiveBufferFull:{1}, numberOfFormatsInReceiveBuffer:{2}, isReadyToPrint:{3}",
+							status.labelsRemainingInBatch,
+							status.isReceiveBufferFull,
+							status.numberOfFormatsInReceiveBuffer,
+							status.isReadyToPrint);
+						if (status.numberOfFormatsInReceiveBuffer > 0)
+						{
+							App.Current.Hud.Show($"{status.numberOfFormatsInReceiveBuffer} formats in receive buffer");
+							System.Diagnostics.Debug.WriteLine("printing not complete, numberOfFormatsInReceiveBuffer:{0}", status.numberOfFormatsInReceiveBuffer);
+							await Task.Delay(500);
+						}
+						else
+						{
+							System.Diagnostics.Debug.WriteLine("printer receive buffer empty");
+							break;
+						}
+					}
+					App.Current.Hud.Show("closing printer");
+					System.Diagnostics.Debug.WriteLine("closing printer");
 					conn.Close();
+					await Task.Delay(1000);
 				}
 				catch (ConnectionException connEx)
 				{
@@ -395,10 +421,7 @@ namespace demoprint.Viewmodels
 				IsProgressVisible = true;
 				SelectedPrinter = null;
 				AllPrinters = new ObservableCollection<BluetoothPrinter>();
-
-				
 				var handler = new PrinterDiscoveryHandlerImplementation(this);
-
 				connManager.FindBluetoothPrinters(handler);
 			}
 			catch(Exception ex)
