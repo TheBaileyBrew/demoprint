@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:yummy="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
+    x:Class="demoprint.MainPage"
+    Title="Printing Issue">
+    <ContentPage.Content>
+        <Grid
+            Margin="0,10"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand"
+            RowDefinitions="Auto,.35*,Auto,.35*,Auto">
+            <yummy:PancakeView
+                Padding="2" Grid.Row="0"
+                Margin="0,2" VerticalOptions="FillAndExpand"
+                BackgroundColor="{StaticResource AlmostBlack}"
+                StyleClass="LightBorder,SmallShadow">
+                <Label
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    VerticalOptions="FillAndExpand"
+                    VerticalTextAlignment="Center"
+                    TextColor="White" Margin="4"
+                    Text="ITEMS TO BE PRINTED"/>
+            </yummy:PancakeView>
+
+            <CollectionView
+                Grid.Row="1"
+                HorizontalOptions="FillAndExpand" SelectionMode="None"
+                ItemSizingStrategy="MeasureAllItems"
+                ItemsSource="{Binding AvailableItems, Mode=TwoWay}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <yummy:PancakeView
+                            Padding="2"
+                            Margin="3,2" VerticalOptions="FillAndExpand"
+                            BackgroundColor="White"
+                            StyleClass="LightBorder,SmallShadow">
+                            <Grid
+                                Padding="10,1"
+                                ColumnDefinitions=".65*,.10*,.25*"
+                                RowSpacing="1"
+                                RowDefinitions="Auto,Auto,Auto"
+                                VerticalOptions="FillAndExpand"
+                                HorizontalOptions="FillAndExpand">
+                                <Label
+                                    Grid.Column="0" Grid.Row="0"
+                                    Text="{Binding ItemNumber}"
+                                    HorizontalOptions="Start"
+                                    HorizontalTextAlignment="Start"
+                                    StyleClass="Text-Small" FontAttributes="Bold"/>
+                                <Label
+                                    Grid.Column="2" Grid.Row="0"
+                                    Text="Quantity"
+                                    HorizontalOptions="FillAndExpand"
+                                    HorizontalTextAlignment="Center"
+                                    StyleClass="Text-Small,Text-Dim" FontAttributes="Italic"/>
+                                <Label
+                                    Grid.Column="2" Grid.Row="1" Grid.RowSpan="3"
+                                    Text="{Binding Quantity}"
+                                    HorizontalOptions="FillAndExpand"
+                                    HorizontalTextAlignment="Center"
+                                    StyleClass="Text-Small" FontAttributes="Bold"/>
+
+                                                
+                                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Text="{Binding ItemDescription}"
+                                    HorizontalOptions="StartAndExpand"
+                                    HorizontalTextAlignment="Start"
+                                    StyleClass="Text-Micro, Text-Dim"/>
+                                <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Text="{Binding FormattedCustomer}"
+                                    HorizontalOptions="Start"
+                                    HorizontalTextAlignment="Start"
+                                    VerticalOptions="Center"
+                                    StyleClass="Text-Micro" FontAttributes="Bold"/>
+                            </Grid>
+                        </yummy:PancakeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <StackLayout
+                Grid.Row="2"
+                Orientation="Vertical"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand">
+                <yummy:PancakeView
+                    Padding="2" Grid.Row="0"
+                    Margin="0,2" VerticalOptions="FillAndExpand"
+                    BackgroundColor="{StaticResource AlmostBlack}"
+                    StyleClass="LightBorder,SmallShadow">
+                    <Label
+                        HorizontalOptions="FillAndExpand"
+                        HorizontalTextAlignment="Center"
+                        VerticalOptions="FillAndExpand" Margin="4"
+                        VerticalTextAlignment="Center" TextColor="White"
+                        Text="SELECTED PRINTER"/>
+                </yummy:PancakeView>
+                <Label
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    VerticalOptions="FillAndExpand"
+                    VerticalTextAlignment="Center"
+                    Text="{Binding CurrentPrinterName}"/>
+            </StackLayout>
+
+            <StackLayout
+                Grid.Row="3"
+                Orientation="Vertical"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand">
+                <yummy:PancakeView
+                    Padding="2" Grid.Row="0"
+                    Margin="0,2" VerticalOptions="FillAndExpand"
+                    BackgroundColor="{StaticResource AlmostBlack}"
+                    StyleClass="LightBorder,SmallShadow">
+                    <Label
+                        HorizontalOptions="FillAndExpand"
+                        HorizontalTextAlignment="Center"
+                        VerticalOptions="FillAndExpand" Margin="4"
+                        VerticalTextAlignment="Center" TextColor="White"
+                        Text="AVAILABLE PRINTERS"/>
+                </yummy:PancakeView>
+                <CollectionView
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="FillAndExpand" Margin="8,0"
+                    SelectionMode="Single" SelectionChanged="CollectionView_SelectionChanged"
+                    SelectedItem="{Binding SelectedPrinter, Mode=TwoWay}"
+                    ItemsSource="{Binding AllPrinters,Mode=TwoWay}">
+                    <CollectionView.EmptyView>
+                        <StackLayout
+                            Orientation="Vertical"
+                            HorizontalOptions="FillAndExpand"
+                            VerticalOptions="FillAndExpand">
+                            <Label
+                                HorizontalOptions="FillAndExpand"
+                                HorizontalTextAlignment="Center"
+                                VerticalOptions="FillAndExpand"
+                                VerticalTextAlignment="Center"
+                                Text="Tap Find Printers To Search"/>
+                        </StackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <yummy:PancakeView
+                                Padding="2"
+                                Margin="8,4" VerticalOptions="FillAndExpand"
+                                BackgroundColor="White"
+                                StyleClass="LightBorder,SmallShadow">
+                                <Label
+                                    Text="{Binding PrinterName}"
+                                    Margin="4"
+                                    TextColor="Green"/>
+                            </yummy:PancakeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <Button
+                    Command="{Binding SearchForPrintersCommand}"
+                    Text="FIND PRINTERS"
+                    BackgroundColor="{StaticResource FadedRed}"
+                    TextColor="Black"
+                    HorizontalOptions="FillAndExpand"/>
+            </StackLayout>
+
+            <StackLayout
+                Grid.Row="4"
+                Orientation="Vertical"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand">
+                <Button
+                    Text="PRINT LABELS"
+                    HorizontalOptions="FillAndExpand"
+                    Margin="3,1" Command="{Binding PrintAllItemsCommand}"
+                    BackgroundColor="{StaticResource FadedGreen}"
+                    TextColor="Black"/>
+            </StackLayout>
+        </Grid>
+    </ContentPage.Content>
+
+</ContentPage>
